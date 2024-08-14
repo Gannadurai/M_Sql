@@ -141,5 +141,16 @@ FROM
     salaries
 WHERE
     from_date <= '1994-11-29'; 
-    
+select * from departments; 
+CREATE TABLE departments_dup (
+    dept_no CHAR(4) ,
+    dept_name VARCHAR(40) 
+);
+drop table departments_dup;
+INSERT INTO departments_dup (dept_no, dept_name) VALUES ('D001', 'Human Resources');
+INSERT INTO departments_dup (dept_no, dept_name)
+SELECT dept_no, dept_name
+FROM departments;
+
+select * from departments_dup;
 
