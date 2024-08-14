@@ -153,6 +153,8 @@ SELECT dept_no, dept_name
 FROM departments;
 
 select * from departments_dup
+
+
 ORDER BY dept_no ASC; 
 ALTER TABLE departments_dup
 CHANGE COLUMN dept_name dept_name VARCHAR(40) NULL; 
@@ -161,3 +163,75 @@ INSERT INTO departments_dup(dept_no) VALUES ('d010'), ('d011');
 ALTER TABLE employees.departments_dup
 ADD COLUMN dept_manager VARCHAR(255) NULL AFTER dept_name;
 commit;
+
+select 
+dept_no,
+IFNULL (dept_name,'Department name not provided') AS dept_name
+FROM departments_dup;
+
+-- Coalesce function
+select dept_no,dept_name,
+coalesce(dept_manager,dept_name,'N/A') AS dept_manager
+FROM departments_dup;
+
+SELECT 
+    dept_no,
+    dept_name,
+    COALESCE(dept_no, dept_name) AS dept_info
+FROM
+    departments_dup
+ORDER BY dept_no ASC;
+
+select * from employees;
+
+-- Retrieve the employee number, date of birth, and first name for all individuals from the 
+-- employees table. Use a function to ensure that their last name is displayed in place of the 
+-- first name if a null value is encountered in the first name for a given record.
+
+SELECT 
+    emp_no,
+    birth_date,
+    COALESCE(first_name, last_name) AS name
+FROM
+    employees; 
+-- OR
+
+SELECT 
+    emp_no,
+    birth_date,
+    IFNULL(first_name, last_name) AS name
+FROM
+    employees; 
+    
+-- Modify the code obtained from the previous exercise in the following way. 
+-- Apply the IFNULL() function to the values from the first and second column, so that ‘N/A’ is 
+-- displayed whenever a department number has no value, and ‘Department name not provided’ is shown if there 
+-- is no value for ‘dept_name’.    
+SELECT 
+    IFNULL(dept_no, 'N/A') AS dept_no,
+    IFNULL(dept_name,
+            'Department name not provided') AS dept_name,
+    COALESCE(dept_no, dept_name) AS dept_info
+FROM
+    departments_dup
+ORDER BY dept_no ASC;
+
+-- Retrieve the employee number, date of birth, and first and last names for all individuals from the
+--  employees table. Use a function to ensure that "Not provided" is displayed in place of the first name
+--  if a null value is encountered for a given record.
+SELECT 
+    emp_no,
+    birth_date,
+    IFNULL(first_name, "Not provided") AS first_name,
+    last_name
+FROM
+    employees; 
+-- OR
+
+SELECT 
+    emp_no,
+    birth_date,
+    COALESCE(first_name, "Not provided") AS first_name,
+    last_name
+FROM
+    employees; 
