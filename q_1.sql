@@ -134,5 +134,12 @@ FROM
     dept_emp
 ORDER BY dept_no ASC;
 
+ 
+SELECT 
+    *
+FROM
+    dept_emp
+ORDER BY dept_no ASC;
+
 
 
