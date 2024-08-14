@@ -152,5 +152,12 @@ INSERT INTO departments_dup (dept_no, dept_name)
 SELECT dept_no, dept_name
 FROM departments;
 
-select * from departments_dup;
+select * from departments_dup
+ORDER BY dept_no ASC; 
+ALTER TABLE departments_dup
+CHANGE COLUMN dept_name dept_name VARCHAR(40) NULL; 
+INSERT INTO departments_dup(dept_no) VALUES ('d010'), ('d011');
 
+ALTER TABLE employees.departments_dup
+ADD COLUMN dept_manager VARCHAR(255) NULL AFTER dept_name;
+commit;
