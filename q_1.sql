@@ -235,3 +235,57 @@ SELECT
     last_name
 FROM
     employees; 
+
+--     --NVL function
+-- The NVL and COALESCE functions are both used to handle NULL values in SQL, but they have some differences in terms of functionality and compatibility across SQL dialects. Here’s a comparison of the two:
+
+-- NVL Function
+-- Usage: Primarily used in Oracle SQL.
+-- Syntax: NVL(expression, replacement_value)
+-- expression: The value or column to check for NULL.
+-- replacement_value: The value to return if expression is NULL.
+-- Behavior: NVL takes exactly two arguments. If the first argument is NULL, the second argument is returned. Otherwise, the first argument is returned.
+-- Example:
+
+-- sql
+-- Copy code
+-- SELECT NVL(commission, 0) AS commission
+-- FROM employees;
+-- Characteristics:
+
+-- Limited to Two Arguments: You can only specify one value to replace NULL.
+-- Oracle-Specific: Primarily used in Oracle databases.
+-- COALESCE Function
+-- Usage: Available in most SQL databases, including Oracle, SQL Server, PostgreSQL, MySQL, and others.
+-- Syntax: COALESCE(expression1, expression2, ..., expressionN)
+-- expression1, expression2, ..., expressionN: A list of expressions to check for NULL.
+-- Behavior: COALESCE evaluates the list of expressions from left to right and returns the first non-NULL value. If all expressions are NULL, it returns NULL.
+-- Example:
+
+-- sql
+-- Copy code
+-- SELECT COALESCE(commission, bonus, 0) AS compensation
+-- FROM employees;
+-- Characteristics:
+
+-- Multiple Arguments: You can specify multiple arguments. The function returns the first non-NULL value from the list.
+-- Standard SQL: COALESCE is part of the SQL standard and is supported by most SQL databases.
+-- Summary of Differences
+-- Number of Arguments:
+
+-- NVL: Only two arguments.
+-- COALESCE: Multiple arguments.
+-- SQL Dialect Compatibility:
+
+-- NVL: Specific to Oracle.
+-- COALESCE: Supported by most SQL databases and part of the SQL standard.
+-- Usage Flexibility:
+
+-- NVL: Best suited for simple cases with a single alternative value.
+-- COALESCE: More flexible for scenarios where multiple potential non-NULL values are possible.
+-- In general, if you need to support multiple potential values or want a more portable solution across different SQL databases, COALESCE is often preferred. For Oracle-specific queries, NVL can be a straightforward option.
+
+
+
+
+    
