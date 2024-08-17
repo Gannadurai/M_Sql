@@ -350,3 +350,173 @@ FROM
 WHERE
     e.emp_no < 10003
 ORDER BY e.emp_no , d.dept_name; 
+
+-- Select all managers’ first and last name, hire date, job title, start date, and department name.
+select * from employees;
+select * from dept_manager;
+select * from dept_emp;
+select * from titles;
+
+SELECT
+    e.first_name,
+    e.last_name,
+    e.hire_date,
+    t.title,
+    m.from_date,
+    d.dept_name
+FROM
+    employees e
+        JOIN
+    dept_manager m ON e.emp_no = m.emp_no
+
+        JOIN
+
+    departments d ON m.dept_no = d.dept_no
+
+        JOIN
+
+    titles t ON e.emp_no = t.emp_no
+
+WHERE t.title = 'Manager'
+
+ORDER BY e.emp_no;
+
+-- - 2nd Solution:
+
+SELECT
+
+    e.first_name,
+
+    e.last_name,
+
+    e.hire_date,
+
+    t.title,
+
+    m.from_date,
+
+    d.dept_name
+
+FROM
+
+    employees e
+
+        JOIN
+
+    dept_manager m ON e.emp_no = m.emp_no
+
+        JOIN
+
+    departments d ON m.dept_no = d.dept_no
+
+        JOIN
+
+    titles t ON e.emp_no = t.emp_no
+
+            AND m.from_date = t.from_date
+
+ORDER BY e.emp_no;
+
+-- Retrieve all Senior Engineers' first and last name (first_name, last_name), hire dates (hire_date), 
+-- job titles (title), start dates (from_date), and names of the departments they are working in (dept_name).
+-- To obtain the desired result, you should refer to data from the following tables:
+-- employees, titles, departments, dept_emp.
+SELECT 
+    e.first_name,
+    e.last_name,
+    e.hire_date,
+    t.title,
+    de.from_date,
+    d.dept_name
+FROM
+    employees e
+        JOIN
+    dept_emp de ON e.emp_no = de.emp_no
+        JOIN
+    departments d ON de.dept_no = d.dept_no
+        JOIN
+    titles t ON e.emp_no = t.emp_no
+WHERE
+    t.title = 'Senior Engineer'
+ORDER BY e.emp_no;
+
+select d.dept_name, AVG(salary) AS Average_salary
+FROM
+departments d
+JOIN
+dept_manager m ON d.dept_no=m.dept_no
+JOIN
+salaries s ON m.emp_no=s.emp_no
+group by d.dept_name
+having average_salary > 60000
+order by average_salary desc;
+
+
+-- How many male and how many female managers do we have in the ‘employees’ database?-- 
+select e.gender,count(dm.emp_no)
+from
+employees e
+join
+ dept_manager dm ON e.emp_no = dm.emp_no
+GROUP BY gender;
+
+-- Calculate the average salary (salary), as recorded in the salaries table, for each job title (title) as 
+-- listed in the titles table, considering all contracts ever signed. Name the second column avg_salary and 
+-- make sure to round the average salary to the nearest cent. Only include records where the average salary 
+-- is less than $75,000. Sort the results from highest to lowest average salary.
+SELECT 
+    s.emp_no, t.title, AVG(s.salary) as average_salary
+FROM
+    titles t
+        JOIN
+    salaries s ON t.emp_no = s.emp_no
+GROUP BY t.title
+HAVING AVG(s.salary) < 75000
+ORDER BY average_salary DESC;
+
+-- Go forward to the solution and execute the query. What do you think is the meaning of the minus
+--  sign before subset A in the last row (ORDER BY -a.emp_no DESC)? 
+SELECT 
+    *
+FROM
+    (SELECT 
+        e.emp_no,
+            e.first_name,
+            e.last_name,
+            NULL AS dept_no,
+            NULL AS from_date
+    FROM
+        employees e
+    WHERE
+        last_name = 'Denis' UNION SELECT 
+        NULL AS emp_no,
+            NULL AS first_name,
+            NULL AS last_name,
+            dm.dept_no,
+            dm.from_date
+    FROM
+        dept_manager dm) AS a
+ORDER BY - a.emp_no DESC;
+
+-- Use UNION to combine data from two subsets in the employees_10 database. 
+-- The first subset should contain the employee number (emp_no), first name (first_name), and last name (last_name)
+--  of all employees whose family name is 'Bamford'. The second subset should contain the department number
+--  (dept_no) and start date (from_date) of all managers, as recorded in the departments manager table 
+--  (dept_manager). Ensure to provide null values in all empty columns for each subset.
+SELECT 
+    e.emp_no,
+	e.first_name,
+	e.last_name,
+	NULL AS dept_no,
+	NULL AS from_date
+FROM
+    employees e
+WHERE
+    last_name = 'Bamford' UNION SELECT 
+    NULL AS emp_no,
+	NULL AS first_name,
+	NULL AS last_name,
+	dm.dept_no,
+	dm.from_date
+FROM
+    dept_manager dm;
