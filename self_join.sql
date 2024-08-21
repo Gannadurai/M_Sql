@@ -48,4 +48,17 @@ ON
     e1.manager_no = e2.emp_no
     AND e1.dept_no = e2.dept_no;
 
-    
+-- Execute a query containing a self-join of the emp_manager table on 
+-- the employee and manager numbers, using the aliases e1 and e2. 
+-- Ensure -- the result set contains only unique rows. In the field lisdesignate all columns in the order they appear in the e1 table.
+    SELECT DISTINCT
+    e1.emp_no,
+    e1.dept_no,
+    e1.manager_no
+FROM
+    emp_manager e1
+JOIN
+    emp_manager e2
+ON
+    e1.emp_no = e2.manager_no
+    AND e1.dept_no = e2.dept_no;
