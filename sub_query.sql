@@ -1,4 +1,5 @@
 use employees;
+show tables;
 -- Extract the information about all department managers who were hired between the 1st of January 
 -- 1990 and the 1st of January 1995.
 SELECT 
