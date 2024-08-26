@@ -234,4 +234,3 @@ FROM
         JOIN
     dept_emp de ON de.emp_no = e.emp_no
 GROUP BY e.emp_no, e.first_name, e.last_name;
-
