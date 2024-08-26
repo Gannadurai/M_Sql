@@ -216,21 +216,9 @@ WHERE
     e.first_name = p_first_name
         AND e.last_name = p_last_name
         AND s.from_date = v_max_from_date;
-
-       
-
                 RETURN v_salary;
-
-
-
-END//
-
-
-
+END
 DELIMITER ;
-
-
-
 SELECT EMP_INFO('Aruna', 'Journel');
 
 
