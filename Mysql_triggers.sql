@@ -297,6 +297,6 @@ SELECT DATE_FORMAT(SYSDATE(), '%y-%m-%d') as today;
 -- # Moreover, it set the start date of her new contract to be the day on which you executed the insert statement.
 
 -- # Finally, to restore the data in the database to the state from the beginning of this lecture, execute the following ROLLBACK statement. 
--- ROLLBACK;
+ROLLBACK;
 
 -- # End.
