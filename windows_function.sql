@@ -220,7 +220,36 @@ SELECT
 FROM
 	employees 
 WINDOW w AS (PARTITION BY first_name ORDER BY emp_no);
-	
+
+-- 	Partion Vs Groupby function
+
+select 
+      emp_no,
+      salary,
+      row_number() OVER (partition by emp_no order by salary desc) AS row_num
+ FROM
+  salaries;
+
+  
+ select a.emp_no,
+       MAX(salary) AS max_salary FROM (
+ 
+     select 
+      emp_no,
+      salary,
+      row_number() OVER w AS row_num
+   FROM
+   salaries
+  window w AS (partition by emp_no order by salary desc)) a
+  group by emp_no;
+  
+  select a.emp_no,
+       MAX(salary) AS max_salary FROM (
+     select 
+        emp_no,
+         salary
+      FROM
+        salaries) a
 
 
 
