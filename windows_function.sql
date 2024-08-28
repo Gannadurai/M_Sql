@@ -250,6 +250,416 @@ select
          salary
       FROM
         salaries) a
+ group by emp_no;
+ 
+ 
+ select a.emp_no,
+       a.salary AS max_salary FROM (
+ 
+     select 
+      emp_no,
+      salary,
+      row_number() OVER w AS row_num
+   FROM
+   salaries
+  window w AS (partition by emp_no order by salary desc)) a
+  where a.row_num=1;
+ 
+ -- Exercise #1:
+
+-- Find out the lowest salary value each employee has ever signed a contract for. To obtain the desired output, 
+-- use a subquery containing a window function, as well as a window specification introduced with the help of 
+-- the WINDOW keyword.
+
+-- Also, to obtain the desired result set, refer only to data from the “salaries” table.
+select * from salaries;
+SELECT a.emp_no,
+
+       MIN(salary) AS min_salary FROM (
+
+SELECT
+
+emp_no, salary, ROW_NUMBER() OVER w AS row_num
+
+FROM
+
+salaries
+
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary)) a
+
+GROUP BY emp_no;
+
+-- Exercise #2:
+
+-- Again, find out the lowest salary value each employee has ever signed a contract for. Once again, to obtain the desired output, 
+-- use a subquery containing a window function. This time, however, introduce the window specification in the field list of 
+-- the given subquery.
+
+-- To obtain the desired result set, refer only to data from the “salaries” table.
+
+SELECT a.emp_no,
+
+       MIN(salary) AS min_salary FROM (
+
+SELECT
+
+emp_no, salary, ROW_NUMBER() OVER (PARTITION BY emp_no ORDER BY salary) AS row_num
+
+FROM
+
+salaries) a
+
+GROUP BY emp_no;
+
+-- Exercise #3:
+
+-- Once again, find out the lowest salary value each employee has ever signed a contract for. This time, 
+-- to obtain the desired output, avoid using a window function. Just use an aggregate function and a subquery.
+
+-- To obtain the desired result set, refer only to data from the “salaries” table.
+SELECT 
+    a.emp_no, MIN(salary) AS min_salary
+FROM
+    (SELECT 
+        emp_no, salary
+    FROM
+        salaries) a
+GROUP BY emp_no;
+
+-- Exercise #4:
+
+-- Once more, find out the lowest salary value each employee has ever signed a contract for. 
+-- To obtain the desired output, use a subquery containing a window function, as well as a window specification introduced 
+-- with the help of the WINDOW keyword. Moreover, obtain the output without using a GROUP BY clause in the outer query.
+
+-- To obtain the desired result set, refer only to data from the “salaries” table.
+SELECT a.emp_no,
+
+a.salary as min_salary FROM (
+
+SELECT
+
+emp_no, salary, ROW_NUMBER() OVER w AS row_num
+
+FROM
+
+salaries
+
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary)) a
+
+WHERE a.row_num=1;
+
+-- Exercise #5:
+
+-- Find out the second-lowest salary value each employee has ever signed a contract for. To obtain the desired output,
+--  use a subquery containing a window function, as well as a window specification introduced with the help of the WINDOW keyword. 
+--  Moreover, obtain the desired result set without using a GROUP BY clause in the outer query.
+
+-- To obtain the desired result set, refer only to data from the “salaries” table.
+
+SELECT a.emp_no,
+
+a.salary as min_salary FROM (
+
+SELECT
+
+emp_no, salary, ROW_NUMBER() OVER w AS row_num
+
+FROM
+
+salaries
+
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary)) a
+
+WHERE a.row_num=2;
+
+-- Retrieve the employee number (emp_no) and the lowest contract salary value (salary, using the alias min_salary) for all managers. 
+-- To obtain the desired output, you need to refer to the dept_manager and salaries tables.
+
+-- PARTITION BY and GROUP BY are two clauses whose funcionality people sometimes confuse at the beginning. 
+-- To explore the difference between these two SQL tools, try to include both in your query.
+
+SELECT a.emp_no, 
+       MIN(salary) AS min_salary FROM (
+	SELECT 
+		s.emp_no, salary, ROW_NUMBER() OVER w AS row_num
+	FROM
+		dept_manager dm
+	JOIN 
+	    salaries s ON dm.emp_no = s.emp_no 
+	WINDOW w AS (PARTITION BY s.emp_no ORDER BY salary)) a
+GROUP BY a.emp_no;
+
+-- method-2
+SELECT a.emp_no, 
+       MIN(salary) AS min_salary FROM (
+	SELECT 
+		s.emp_no, salary, ROW_NUMBER() OVER (PARTITION BY s.emp_no ORDER BY salary) AS row_num
+	FROM
+		dept_manager dm
+	JOIN 
+	    salaries s ON dm.emp_no = s.emp_no) a
+GROUP BY a.emp_no;
+
+-- method-3
+SELECT a.emp_no, 
+	a.salary AS min_salary FROM (
+	SELECT 
+		s.emp_no, salary, ROW_NUMBER() OVER w AS row_num
+	FROM
+		dept_manager dm
+	JOIN 
+	    salaries s ON s.emp_no = dm.emp_no
+	WINDOW w AS (PARTITION BY s.emp_no ORDER BY salary)) a
+WHERE a.row_num=1;
+-- method-4
+
+SELECT 
+    dm.emp_no, MIN(s.salary) AS min_salary
+FROM
+    dept_manager dm
+        JOIN
+    salaries s ON s.emp_no = dm.emp_no
+GROUP BY dm.emp_no;
+
+-- method-5
+SELECT 
+    a.emp_no, MIN(salary) AS min_salary
+FROM
+    (SELECT 
+        dm.emp_no, s.salary
+    FROM
+        dept_manager dm
+	JOIN 
+	    salaries s ON dm.emp_no = s.emp_no) a
+GROUP BY emp_no;
+-- Retrieve the employee number (emp_no) and the highest contract salary value (salary, using the alias max_salary) for all managers.
+
+-- To obtain the desired output, modify the following query, which finds the department managers' lowest salaries.
+SELECT a.emp_no, 
+	a.salary AS max_salary FROM (
+	SELECT 
+		s.emp_no, salary, ROW_NUMBER() OVER w AS row_num
+	FROM
+		dept_manager dm
+	JOIN 
+	    salaries s ON s.emp_no = dm.emp_no
+	WINDOW w AS (PARTITION BY s.emp_no ORDER BY salary DESC)) a
+WHERE a.row_num=1;
+
+-- The PARTITION BY Clause vs the GROUP BY Clause - Exercise #3
+-- Retrieve the employee number (emp_no) and the third-highest contract salary value (salary, using the alias third_max_salary)
+--  for all managers.
+
+-- To solve the exercise, you need to refer to the dept_manager and salaries tables.
+SELECT a.emp_no, 
+	a.salary as third_max_salary FROM (
+	SELECT 
+		s.emp_no, salary, ROW_NUMBER() OVER w AS row_num
+	FROM
+		dept_manager dm 
+	JOIN 
+	    salaries s ON s.emp_no = dm.emp_no 
+	WINDOW w AS (PARTITION BY s.emp_no ORDER BY salary DESC)) a
+WHERE a.row_num = 3;
+               
+          --      Rank and dense rank
+          
+SELECT distinct
+emp_no, salary, ROW_NUMBER() OVER w AS row_num
+
+FROM
+
+salaries
+   WHERE emp_no=10001
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary desc) ;
 
 
+SELECT emp_no, diff
+FROM (
+    SELECT emp_no, 
+           (COUNT(salary) - COUNT(DISTINCT salary)) AS diff
+    FROM salaries
+    GROUP BY emp_no
+) AS subquery
+WHERE diff > 0
+ORDER BY emp_no;
+-- Explanation:
+-- Subquery (subquery):
 
+-- The inner query calculates diff as the difference between the total count of salary and the count of distinct salary.
+-- The result is aliased as subquery.
+-- Outer Query:
+
+-- The outer query selects emp_no and diff from the subquery.
+-- The WHERE clause filters the results to only include rows where diff > 0.
+select * from salaries where emp_no='11839';
+
+-- Rank function
+
+  
+SELECT 
+emp_no, salary, rank() OVER w AS rank_num
+
+FROM
+
+salaries
+   WHERE emp_no=11839
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary desc) ;
+
+-- Dense Rank()
+SELECT 
+emp_no, salary, dense_rank() OVER w AS rank_num
+FROM
+salaries
+   WHERE emp_no=11839
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary desc) ;
+
+-- Exercise #1:
+-- Write a query containing a window function to obtain all salary values that employee number 10560 has ever signed a contract for.
+
+-- Order and display the obtained salary values from highest to lowest.
+
+SELECT
+
+emp_no,
+
+salary,
+
+ROW_NUMBER() OVER w AS row_num
+
+FROM
+
+salaries
+
+WHERE emp_no = 10560
+
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary DESC)
+
+-- Exercise #2:
+-- Write a query that upon execution, displays the number of salary contracts that each manager has ever signed 
+-- while working in the company.
+
+SELECT
+    dm.emp_no,
+    COUNT(s.salary) AS no_of_salary_contracts
+FROM
+    dept_manager dm
+JOIN
+    salaries s ON dm.emp_no = s.emp_no
+GROUP BY
+    dm.emp_no
+ORDER BY
+    dm.emp_no;
+
+SELECT VERSION();
+
+-- query with window function
+-- Assuming you are using MySQL 8.0 or later
+SELECT
+    emp_no,
+    salary,
+    ROW_NUMBER() OVER (PARTITION BY emp_no ORDER BY salary DESC) AS row_num
+FROM
+    salaries
+WHERE
+    emp_no = 10560;
+
+-- 2. Query for Counting Salary Contracts:
+SELECT
+    dm.emp_no,
+    COUNT(s.salary) AS no_of_salary_contracts
+FROM
+    dept_manager dm
+JOIN
+    salaries s ON dm.emp_no = s.emp_no
+GROUP BY
+    dm.emp_no
+ORDER BY
+    dm.emp_no;
+
+-- Exercise #3:
+-- Write a query that upon execution retrieves a result set containing all salary values that employee 10560 has ever signed 
+-- a contract for. Use a window function to rank all salary values from highest to lowest in a way that equal salary values bear 
+-- the same rank and that gaps in the obtained ranks for subsequent rows are allowed.
+
+SELECT
+
+emp_no,
+
+salary,
+
+RANK() OVER w AS rank_num
+
+FROM
+
+salaries
+
+WHERE emp_no = 10560
+
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary DESC);
+
+-- Exercise #4:
+-- Write a query that upon execution retrieves a result set containing all salary values that employee 10560 
+-- has ever signed a contract for. Use a window function to rank all salary values from highest to lowest in a way that equal
+--  salary values bear the same rank and that gaps in the obtained ranks for subsequent rows are not allowed.
+SELECT
+
+emp_no,
+
+salary,
+
+DENSE_RANK() OVER w AS rank_num
+
+FROM
+
+salaries
+
+WHERE emp_no = 10560
+
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary DESC);
+
+-- The MySQL RANK() and DENSE_RANK() Window Functions - Exercise #1
+-- Order and number all contract salary values of employee 10002 from highest to lowest. Store the row numbers in a third 
+-- column named order_num which assigns different row numbers to identical salary values.
+
+-- To obtain the desired values, refer to the employee number (emp_no) and salary (salary) columns from the salaries table.
+SELECT 
+	emp_no, 
+	salary,
+	ROW_NUMBER() OVER w AS order_num
+FROM
+	salaries
+	WHERE emp_no = 10002
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary DESC);
+
+-- Exercise #2
+-- Order and rank all contract salary values of employee 10002 from highest to lowest. 
+-- Store the row numbers in a third column named order_num. Assign the same rank to identical salary values allowing gaps in 
+-- the obtained ranks for subsequent rows.
+
+-- To obtain the desired values, refer to the employee number (emp_no) and salary (salary) columns from the salaries table.
+SELECT
+    emp_no,
+    salary,
+    RANK() OVER (PARTITION BY emp_no ORDER BY salary DESC) AS order_num
+FROM
+    salaries
+WHERE
+    emp_no = 10002;
+
+-- Exercise #3
+-- Order and rank all contract salary values of employee 10002 from highest to lowest. Store the row numbers in a third column 
+-- named order_num. Assign the same rank to identical salary values without allowing gaps in the obtained ranks for subsequent rows.
+
+-- To obtain the desired values, refer to the employee number (emp_no) and salary (salary) columns from the salaries table.
+select
+emp_no,
+salary,
+dense_rank() over (partition by emp_no order by salary desc) AS order_num
+FROM
+    salaries
+WHERE
+    emp_no = 10002;
+    
+          -- Ranking window function and Joins Together
