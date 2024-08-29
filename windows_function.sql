@@ -663,3 +663,465 @@ WHERE
     emp_no = 10002;
     
           -- Ranking window function and Joins Together
+
+ -- Create a query that will complete all subtask at once.
+--  1.Obtain data only about the managers from the 'employee' database.
+--  2.Partition the relevant information by the departments where the managers have worked in.
+--  3.Arrange the partition by manager's salary contract values in descending order.
+--  4.Rank the manager according to their salaries in a certain department(where you prefer not to lose track of the no:of salary 
+--    contract signed within each department).
+--  5.Display the start and end dates of each salary contract(call the relevant fields salary_from_date and salary_to_date respectively)
+--  6.Display the first and last date in which an employee has been a manager according to the data provided dept_manager table 
+--    (call the relevant fields dept_manager_from_date and dept_manager_to_date,respectively)
+   select * from dept_manager;
+ select 
+      d.dept_no,
+      d.dept_name,
+      dm.emp_no,
+      RANK() over w AS department_salary_ranking,
+      s.salary,
+      s.from_date as salary_from_date,
+      s.to_date as salary_to_date,
+      dm.from_date as dept_manager_from_date,
+      dm.to_date as dept_manager_to_date
+    from
+     dept_manager dm
+       JOIN
+      departments d on d.dept_no=dm.dept_no
+       JOIN
+      salaries s on s.emp_no=dm.emp_no
+      And s.from_date between dm.from_date AND dm.to_date
+      And s.to_date between dm.from_date AND dm.to_date
+	Window w as (partition by dm.dept_no order by s.salary DESC);  
+ --   Exercise #1:
+
+-- Write a query that ranks the salary values in descending order of all contracts signed by employees numbered between 
+-- 10500 and 10600 inclusive. Let equal salary values for one and the same employee bear the same rank. 
+-- Also, allow gaps in the ranks obtained for their subsequent rows.
+
+-- Use a join on the “employees” and “salaries” tables to obtain the desired result.       
+SELECT
+
+    e.emp_no,
+
+    RANK() OVER w as employee_salary_ranking,
+
+    s.salary
+
+FROM
+
+employees e
+
+JOIN
+
+    salaries s ON s.emp_no = e.emp_no
+
+WHERE e.emp_no BETWEEN 10500 AND 10600
+
+WINDOW w as (PARTITION BY e.emp_no ORDER BY s.salary DESC);
+-- Exercise #2:
+
+-- Write a query that ranks the salary values in descending order of the following contracts from the "employees" database:
+
+-- - contracts that have been signed by employees numbered between 10500 and 10600 inclusive.
+
+-- - contracts that have been signed at least 4 full-years after the date when the given employee was hired in the 
+-- company for the first time.
+
+-- In addition, let equal salary values of a certain employee bear the same rank. Do not allow gaps in the ranks obtained 
+-- for their subsequent rows.
+
+-- Use a join on the “employees” and “salaries” tables to obtain the desired result.   
+
+SELECT
+
+    e.emp_no,
+
+    DENSE_RANK() OVER w as employee_salary_ranking,
+
+    s.salary,
+
+    e.hire_date,
+
+    s.from_date,
+
+    (YEAR(s.from_date) - YEAR(e.hire_date)) AS years_from_start
+
+FROM
+
+employees e
+
+JOIN
+
+    salaries s ON s.emp_no = e.emp_no
+
+    AND YEAR(s.from_date) - YEAR(e.hire_date) >= 5
+
+WHERE e.emp_no BETWEEN 10500 AND 10600
+
+WINDOW w as (PARTITION BY e.emp_no ORDER BY s.salary DESC); 
+
+-- MySQL Ranking Window Functions and JOINs - Exercise #1
+-- Allowing gaps in the obtained ranks for subsequent rows, rank the contract salary values from highest to 
+-- lowest for employees 10001, 10002, 10003, 10004, 10005, and 10006.
+
+-- Every row in the desired output should contain an employee number (emp_no) obtained from the employees table, 
+
+-- and a salary value obtained from the salaries table. Additionally, include the salary ranking values between 
+-- the two columns in a field named employee_salary_ranking.      
+select * from employees;
+select * from salaries;
+
+SELECT 
+    e.emp_no,
+    RANK() OVER w as employee_salary_ranking,
+    s.salary
+FROM
+	employees e 
+		JOIN 
+    salaries s ON s.emp_no = e.emp_no
+WHERE e.emp_no BETWEEN 10001 AND 10006
+WINDOW w AS (PARTITION BY e.emp_no ORDER BY s.salary DESC);
+
+-- MySQL Ranking Window Functions and JOINs - Exercise #2
+-- Without allowing gaps in the obtained ranks for subsequent rows, rank the contract salary values from highest to lowest 
+-- for employees 10001, 10002, and 10003.
+
+-- Every row in the desired output should contain the relevant employee number (emp_no) and the hire date (hire_date) 
+-- from the employees table, as well as the relevant salary value and the start date (from_date) from the salaries table. 
+-- Additionally, include the salary ranking values in a field named employee_salary_ranking.
+
+-- Retrieve only data for contracts that have started prior to 2000. Sort your data by the  emp_no in ascending order, 
+-- referring to the employees table.
+
+SELECT 
+    e.emp_no,
+    DENSE_RANK() OVER w as employee_salary_ranking,
+    s.salary,
+    e.hire_date,
+    s.from_date
+FROM
+	employees e 
+		JOIN 
+    salaries s ON s.emp_no = e.emp_no
+    AND s.from_date < '2000-01-01'
+WHERE e.emp_no BETWEEN 10001 AND 10003
+WINDOW w as (PARTITION BY e.emp_no ORDER BY s.salary DESC)
+ORDER BY e.emp_no ASC;
+
+-- The LAG and LEAD function.
+
+-- The salary values from all contracts that employee 10001 had ever signed while working for the company(in ascending order)
+-- 1.A coloum showing the previous salary value from our ordered list(in ascending order).
+-- 2.A coloum showing the previous salary value from our ordered list.
+-- 3.A coloum displaying the diff bw the current and previous salary of a given record from the list.
+-- 4.A coloum displaying the diff bw the next and current salary of a given record from the list.
+
+select
+   emp_no,
+   salary,
+   lag(salary) over w as prevoius_salary,
+   lead(salary) over w as next_salary,
+   salary -  lag(salary) over w as diff_salary_current_previous,
+   lead(salary) over w - salary AS diff_salary_next_current
+  FROM
+     salaries
+  where emp_no=10001
+  window w AS (order by salary);
+
+--   Exercise #1:
+
+-- Write a query that can extract the following information from the "employees" database:
+
+-- - the salary values (in ascending order) of the contracts signed by all employees numbered between 
+-- 10500 and 10600 inclusive
+
+-- - a column showing the previous salary from the given ordered list
+
+-- - a column showing the subsequent salary from the given ordered list
+
+-- - a column displaying the difference between the current salary of a certain employee 
+-- and their previous salary
+
+-- - a column displaying the difference between the next salary of a certain employee and their current salary
+
+-- Limit the output to salary values higher than $80,000 only.
+
+-- Also, to obtain a meaningful result, partition the data by employee number.
+  SELECT
+
+emp_no,
+
+    salary,
+
+    LAG(salary) OVER w AS previous_salary,
+
+    LEAD(salary) OVER w AS next_salary,
+
+    salary - LAG(salary) OVER w AS diff_salary_current_previous,
+
+LEAD(salary) OVER w - salary AS diff_salary_next_current
+
+FROM
+
+salaries
+
+    WHERE salary > 80000 AND emp_no BETWEEN 10500 AND 10600
+
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary);
+
+-- Exercise #2:
+
+-- The MySQL LAG() and LEAD() value window functions can have a second argument, designating how many 
+-- rows/steps back (for LAG()) or forth (for LEAD()) we'd like to refer to with respect to a given record.
+
+-- With that in mind, create a query whose result set contains data arranged by the salary values 
+-- associated to each employee number (in ascending order). Let the output contain the following six columns:
+
+-- - the employee number
+
+-- - the salary value of an employee's contract (i.e. which we’ll consider as the employee's current salary)
+
+-- - the employee's previous salary
+
+-- - the employee's contract salary value preceding their previous salary
+
+-- - the employee's next salary
+
+-- - the employee's contract salary value subsequent to their next salary
+
+-- Restrict the output to the first 1000 records you can obtain.
+
+SELECT
+
+emp_no,
+
+    salary,
+
+    LAG(salary) OVER w AS previous_salary,
+
+LAG(salary, 2) OVER w AS 1_before_previous_salary,
+
+LEAD(salary) OVER w AS next_salary,
+
+    LEAD(salary, 2) OVER w AS 1_after_next_salary
+
+FROM
+
+salaries
+
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary)
+
+LIMIT 1000;
+
+
+-- For employees with employee numbers between 10003 and 10008, inclusive, and their salary contracts 
+-- with values less than $70,000, retrieve the following data from the salaries table:
+
+-- - employee number (emp_no)
+-- - salary (salary)
+-- - previous salary (previous_salary)
+-- - next salary (next_salary)
+-- - the difference between the current salary of a certain employee and their previous salary (diff_salary_current_previous)
+-- - the difference between the next salary of a certain employee and their current salary (diff_salary_next_current).
+
+-- Observe the following excerpt from the desired output to see how to organize the field list in your SELECT statement:
+
+SELECT 
+	emp_no,
+    salary, 
+    LAG(salary) OVER w AS previous_salary,
+    LEAD(salary) OVER w AS next_salary,
+    salary - LAG(salary) OVER w AS diff_salary_current_previous,
+	LEAD(salary) OVER w - salary AS diff_salary_next_current
+FROM
+	salaries
+    WHERE salary < 70000 AND emp_no BETWEEN 10003 AND 10008
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary);
+
+-- The LAG() and LEAD() Value Window Functions - Exercise #2
+-- Retrieve the following data from the salaries table:
+
+-- - employee number (emp_no)
+-- - salary (salary)
+-- - use a window function to obtain the salary value of three contracts prior to the given employee contract 
+-- salary value, if applicable. Name the column _before_previous_salary
+-- - use a window function to obtain the salary value of three contracts after the given employee contract 
+-- salary value, if applicable. Name the column _after_next_salary.
+
+-- To obtain the desired output, partition the data by employee number (emp_no) and order by salary 
+-- (salary) in ascending order. Retrieve only the first one hundred rows of data.
+
+SELECT 
+	emp_no,
+    salary, 
+	LAG(salary, 3) OVER w AS _before_previous_salary,
+    LEAD(salary, 3) OVER w AS _after_next_salary
+FROM
+	salaries
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary)
+LIMIT 100;
+
+
+-- Aggregate windows function
+select emp_no,salary,from_date,to_date
+    From 
+    salaries
+    where 
+    to_date > sysdate();
+    
+    
+select
+   s1.emp_no,s.salary,s.from_date,s.to_date
+ from
+    salaries s
+    join
+    (select 
+        emp_no,MAX(from_date) AS from_date
+        FROM
+        salaries
+        group by emp_no) s1 on s.emp_no=s1.emp_no
+  where
+       s.to_date > sysdate()
+       AND s.from_date=s1.from_date;
+
+-- MySQL Aggregate Functions in the Context of Window Functions - Part I-Exercise
+-- Exercise #1:
+
+-- Create a query that upon execution returns a result set containing the employee numbers, 
+-- contract salary values, start, and end dates of the first ever contracts that each employee signed for 
+-- the company.
+
+-- To obtain the desired output, refer to the data stored in the "salaries" table.
+
+SELECT 
+    s1.emp_no, s.salary, s.from_date, s.to_date
+FROM
+    salaries s
+        JOIN
+    (SELECT 
+        emp_no, MIN(from_date) AS from_date
+    FROM
+        salaries
+    GROUP BY emp_no) s1 ON s.emp_no = s1.emp_no
+WHERE
+    s.from_date = s1.from_date;
+    
+-- ---------
+
+SELECT 
+    de.emp_no, de.dept_no, de.from_date, de.to_date
+FROM
+    dept_emp de
+        JOIN
+    (SELECT 
+        emp_no, MAX(from_date) AS from_date
+    FROM
+        dept_emp
+    GROUP BY emp_no) de1 ON de1.emp_no = de.emp_no
+WHERE
+    de.to_date = sysdate()
+    AND
+    de.from_date=de1.from_date;
+    -- ---------
+-- MySQL Aggregate Functions in the Context of Window Functions - Part II-Exercise
+-- Exercise #1:
+
+-- Consider the employees' contracts that have been signed after the 1st of January 2000 and terminated before the 1st of January 2002 (as registered in the "dept_emp" table).
+
+-- Create a MySQL query that will extract the following information about these employees:
+
+-- - Their employee number
+
+-- - The salary values of the latest contracts they have signed during the suggested time period
+
+-- - The department they have been working in (as specified in the latest contract they've signed during the suggested time period)
+
+-- - Use a window function to create a fourth field containing the average salary paid in the department the employee was last working in during the suggested time period. Name that field "average_salary_per_department".
+
+
+
+-- Note1: This exercise is not related neither to the query you created nor to the output you obtained while solving the exercises after the previous lecture.
+
+-- Note2: Now we are asking you to practically create the same query as the one we worked on during the video lecture; the only difference being to refer to contracts that have been valid within the period between the 1st of January 2000 and the 1st of January 2002.
+
+-- Note3: We invite you solve this task after assuming that the "to_date" values stored in the "salaries" and "dept_emp" tables are greater than the "from_date" values stored in these same tables. If you doubt that, you could include a couple of lines in your code to ensure that this is the case anyway!
+
+-- Hint: If you've worked correctly, you should obtain an output containing 200 rows.
+SELECT
+
+    de2.emp_no, d.dept_name, s2.salary, AVG(s2.salary) OVER w AS average_salary_per_department
+
+FROM
+
+    (SELECT
+
+    de.emp_no, de.dept_no, de.from_date, de.to_date
+
+FROM
+
+    dept_emp de
+
+        JOIN
+
+(SELECT
+
+emp_no, MAX(from_date) AS from_date
+
+FROM
+
+dept_emp
+
+GROUP BY emp_no) de1 ON de1.emp_no = de.emp_no
+
+WHERE
+
+    de.to_date < '2002-01-01'
+
+AND de.from_date > '2000-01-01'
+
+AND de.from_date = de1.from_date) de2
+
+JOIN
+
+    (SELECT
+
+    s1.emp_no, s.salary, s.from_date, s.to_date
+
+FROM
+
+    salaries s
+
+    JOIN
+
+    (SELECT
+
+emp_no, MAX(from_date) AS from_date
+
+FROM
+
+salaries
+
+    GROUP BY emp_no) s1 ON s.emp_no = s1.emp_no
+
+WHERE
+
+    s.to_date < '2002-01-01'
+
+AND s.from_date > '2000-01-01'
+
+AND s.from_date = s1.from_date) s2 ON s2.emp_no = de2.emp_no
+
+JOIN
+
+    departments d ON d.dept_no = de2.dept_no
+
+GROUP BY de2.emp_no, d.dept_name
+
+WINDOW w AS (PARTITION BY de2.dept_no)
+
+ORDER BY de2.emp_no, salary;
+
+
+
+
