@@ -14,7 +14,7 @@ HAVING
     NUM > 1 
 LIMIT 0, 50;
 
-Create a view that will extract the average salary of all managers registered in the database. Round this value to the nearest cent.
+-- Create a view that will extract the average salary of all managers registered in the database. Round this value to the nearest cent.
 
 -- If you have worked correctly, after executing the view from the 
 -- “Schemas” section in Workbench, you should obtain the value of 66924.27.
