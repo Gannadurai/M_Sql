@@ -1122,6 +1122,122 @@ WINDOW w AS (PARTITION BY de2.dept_no)
 
 ORDER BY de2.emp_no, salary;
 
+-- MySQL Aggregate Functions in the Context of Window Functions - Exercise #1
+-- Without using window functions but using a subquery, retrieve the employee number (emp_no), salary value (salary), start date (from_date), 
+-- and end date (to_date) of the latest contract of all employees according to the data stored in the salaries table.
+
+-- To successfully pass the coding exercise test, do not rename column names.
+SELECT s1.emp_no, s1.salary, s1.from_date, s1.to_date
+FROM salaries s1
+JOIN (
+    SELECT emp_no, MAX(to_date) AS latest_to_date
+    FROM salaries
+    GROUP BY emp_no
+) s2
+ON s1.emp_no = s2.emp_no AND s1.to_date = s2.latest_to_date;
+
+--  Another solution
+SELECT 
+    s1.emp_no, s.salary, s.from_date, s.to_date
+FROM
+    salaries s
+        JOIN
+    (SELECT 
+        emp_no, MAX(from_date) AS from_date
+    FROM
+        salaries
+    GROUP BY emp_no) s1 ON s.emp_no = s1.emp_no
+WHERE
+    s.from_date = s1.from_date;
+    
+-- MySQL Aggregate Functions in the Context of Window Functions - Exercise #2
+-- In a subquery named a, join the salaries and dept_emp tables ON employee number (emp_no), as well as the dept_emp and departments tables
+--  ON department number (dept_no) to select the department number (dept_no) from the dept_emp table, the department name (dept_name) from the
+--  departments table, and the salary (salary) from the salaries table. Use this subset in an outer query to retrieve: 
+
+-- - the distinct department numbers (dept_no) from a
+-- - the relevant department name (dept_name)
+-- - the smallest salary value recorded for the given department (min_salary)
+-- - the highest salary value recorded for the given department (max_salary)
+-- - the average salary value recorded for the given department (avg_salary), rounded to the nearest dollar.
+
+-- Sort the final output by department number (dept_no) in ascending order.    
+-- Subquery to join salaries, dept_emp, and departments tables
+WITH a AS (
+    SELECT 
+        de.dept_no,
+        d.dept_name,
+        s.salary
+    FROM salaries s
+    JOIN dept_emp de ON s.emp_no = de.emp_no
+    JOIN departments d ON de.dept_no = d.dept_no
+)
+
+-- Main query to compute min, max, and avg salary for each department
+SELECT
+    DISTINCT a.dept_no,
+    a.dept_name,
+    MIN(a.salary) AS min_salary,
+    MAX(a.salary) AS max_salary,
+    ROUND(AVG(a.salary)) AS avg_salary
+FROM a
+GROUP BY a.dept_no, a.dept_name
+ORDER BY a.dept_no;
+
+-- Another solution.
+SELECT 
+    DISTINCT a.dept_no,
+    a.dept_name,
+    MIN(a.salary) OVER w AS min_salary,
+    MAX(a.salary) OVER w AS max_salary,
+    ROUND((AVG(a.salary) OVER w)) AS avg_salary
+FROM (
+    SELECT 
+        de.dept_no,
+        d.dept_name,
+        s.salary
+    FROM 
+        salaries s
+    JOIN 
+        dept_emp de ON s.emp_no = de.emp_no
+    JOIN 
+        departments d ON de.dept_no = d.dept_no
+) a
+WINDOW w AS (PARTITION BY a.dept_no ORDER BY a.dept_no ASC);
+
+
+-- Create indexes to optimize joins and aggregations
+CREATE INDEX idx_emp_no_dept_emp ON dept_emp(emp_no);
+CREATE INDEX idx_dept_no_dept_emp ON dept_emp(dept_no);
+CREATE INDEX idx_emp_no_salaries ON salaries(emp_no);
+CREATE INDEX idx_dept_no_salaries ON salaries(dept_no);
+CREATE INDEX idx_dept_no_departments ON departments(dept_no);
+
+WITH a AS (
+    SELECT 
+        de.dept_no,
+        d.dept_name,
+        s.salary
+    FROM 
+        salaries s
+    JOIN 
+        dept_emp de ON s.emp_no = de.emp_no
+    JOIN 
+        departments d ON de.dept_no = d.dept_no
+)
+SELECT 
+    a.dept_no,
+    a.dept_name,
+    MIN(a.salary) AS min_salary,
+    MAX(a.salary) AS max_salary,
+    ROUND(AVG(a.salary)) AS avg_salary
+FROM a
+GROUP BY a.dept_no, a.dept_name
+ORDER BY a.dept_no;
+ -- [mysqld]
+-- net_read_timeout = 600
+-- net_write_timeout = 600
+-- max_execution_time = 60000
 
 
 
