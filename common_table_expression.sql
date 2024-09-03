@@ -1,4 +1,54 @@
 use employees;
+-- How many salary contracts signed by female employees have valued above all-time  average contarct salary of 
+-- the company?.
+SELECT 
+    AVG(salary) AS average_salary
+FROM
+    salaries;
+    
+WITH CTE AS (
+    SELECT AVG(salary) AS avg_salary
+    FROM salaries
+)
+SELECT
+    SUM(CASE WHEN s.salary > c.avg_salary THEN 1 ELSE 0 END) AS no_of_salaries_above_avg,
+    COUNT(s.salary) AS total_no_of_salary_contracts
+FROM
+    salaries s
+JOIN
+    employees e ON e.emp_no = s.emp_no AND e.gender = 'F'
+CROSS JOIN
+    CTE c;
+
+-- --2
+SELECT 
+    AVG(salary) AS average_salary
+FROM
+    salaries;
+    
+WITH CTE AS (
+    SELECT AVG(salary) AS avg_salary
+    FROM salaries
+)
+SELECT
+    SUM(CASE WHEN s.salary > c.avg_salary THEN 1 ELSE 0 END) AS no_of_salaries_above_avg_w_sum,
+    SUM(CASE WHEN s.salary > c.avg_salary THEN 1 ELSE 0 END) AS total_no_of_salaries_above_avg_w_count,
+    COUNT(s.salary) AS total_no_of_salary_contracts
+FROM
+    salaries s
+JOIN
+    employees e ON e.emp_no = s.emp_no AND e.gender = 'F'
+CROSS JOIN
+    CTE c;
+
+
+    
+
+
+
+
+
+
 -- Exercise #1:
 
 -- Use a CTE (a Common Table Expression) and a SUM() function in the SELECT statement in a query to find out how many male employees have
